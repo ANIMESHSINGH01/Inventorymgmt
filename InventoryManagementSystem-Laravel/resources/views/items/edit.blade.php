@@ -43,7 +43,7 @@
 
             <!-- Price (Decimal, item price) -->
             <div class="mb-3">
-                <label for="price" class="block text-sm font-medium text-gray-700">Price(LKR)</label>
+                <label for="price" class="block text-sm font-medium text-gray-700">Price(INR)</label>
                 <input type="number" value = {{ $item->price }} step="0.01" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500 sm:text-sm" id="price" name="price">
                 @error('price')
                 <p class="text-red-500 text-sm ">{{ $message }}</p>
