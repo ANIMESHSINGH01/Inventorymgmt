@@ -23,44 +23,54 @@ class SalesController extends Controller
      * Store a newly created bill and its associated items.
      */
     public function store(Request $request)
-    {
-        // Validate the request with custom messages
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required|exists:items,id',
-            'items.*.quantity' => 'required|integer|min:1',
-        ], [
-            'items.required' => 'At least one item must be selected.',
-            'items.*.item_id.exists' => 'Selected item is invalid.',
-            'items.*.quantity.min' => 'Quantity must be at least 1.',
-        ]);
+{
+    // Validate the request with custom messages
+    $request->validate([
+        'items' => 'required|array|min:1',
+        'items.*.item_id' => 'required|exists:items,id',
+        'items.*.quantity' => 'required|integer|min:1',
+    ], [
+        'items.required' => 'At least one item must be selected.',
+        'items.*.item_id.exists' => 'Selected item is invalid.',
+        'items.*.quantity.min' => 'Quantity must be at least 1.',
+    ]);
 
-        // Create a new bill with an initial total amount of 0
-        $bill = Bill::create(['total_amount' => 0]);
-        $totalAmount = 0;
+    // Create a new bill with an initial total amount of 0
+    $bill = Bill::create(['total_amount' => 0]);
+    $totalAmount = 0;
 
-        // Process each item in the request
-        foreach ($request->items as $itemData) {
-            $item = Item::findOrFail($itemData['item_id']);
-            $totalPrice = $item->price * $itemData['quantity'];
-            $totalAmount += $totalPrice;
+    // Process each item in the request
+    foreach ($request->items as $itemData) {
+        $item = Item::findOrFail($itemData['item_id']);
+        $totalPrice = $item->price * $itemData['quantity'];
+        $totalAmount += $totalPrice;
 
-            // Create a bill item record
-            BillItem::create([
-                'bill_id' => $bill->id,
-                'item_id' => $item->id,
-                'quantity' => $itemData['quantity'],
-                'total_price' => $totalPrice,
+        // Check if the stock is sufficient
+        if ($item->quantity < $itemData['quantity']) {
+            return redirect()->back()->withErrors([
+                'items' => "Insufficient stock for item: {$item->name}",
             ]);
         }
 
-        // Update the total amount in the bill
-        $bill->update(['total_amount' => $totalAmount]);
+        // Deduct the quantity from the inventory
+        $item->decrement('quantity', $itemData['quantity']);
 
-        // Redirect to the invoice view
-        return redirect()->route('sales.invoice', $bill->id)
-            ->with('status', 'Bill created successfully.');
+        // Create a bill item record
+        BillItem::create([
+            'bill_id' => $bill->id,
+            'item_id' => $item->id,
+            'quantity' => $itemData['quantity'],
+            'total_price' => $totalPrice,
+        ]);
     }
+
+    // Update the total amount in the bill
+    $bill->update(['total_amount' => $totalAmount]);
+
+    // Redirect to the invoice view
+    return redirect()->route('sales.invoice', $bill->id)
+        ->with('status', 'Bill created successfully, and inventory updated.');
+}
 
     /**
      * Display the invoice for the specified bill.
