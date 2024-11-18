@@ -14,7 +14,7 @@
                     View Inventory
                 </a>
                 <!-- Sales Button -->
-                <a href="{{ route('sales') }}" class="inline-block px-8 py-3 text-white bg-green-600 rounded-lg hover:bg-green-500 transition duration-300">
+                <a href="{{ route('sales.index') }}" class="inline-block px-8 py-3 text-white bg-green-600 rounded-lg hover:bg-green-500 transition duration-300">
                     Sales
                 </a>
             </div>
