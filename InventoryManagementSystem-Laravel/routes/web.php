@@ -22,7 +22,11 @@ Route::resource('items', ItemController::class)->middleware('auth');
 // Sales and Invoices Routes
 Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
 Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
-Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+
+Route::get('/invoices/{id}', [SalesController::class, 'showInvoice'])->name('sales.invoice');
+
+
+
 
 
 ?>
